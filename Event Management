@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management System</title>
+    <style>
+        :root {
+            --primary-color: #6A5ACD;
+            --secondary-color: #FF6B6B;
+            --background-color: #F0E6FF;
+            --card-color: #FFFFFF;
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-color);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(106, 90, 205, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        form {
+            display: grid;
+            gap: 15px;
+        }
+        label {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.2);
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        #eventList {
+            margin-top: 30px;
+        }
+        .event-card {
+            background-color: #F9F5FF;
+            border: 2px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .event-card:hover {
+            box-shadow: 0 5px 15px rgba(106, 90, 205, 0.1);
+            transform: translateY(-5px);
+        }
+        .event-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .event-card .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .event-card .delete-btn:hover {
+            background-color: #FF4757;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Event Planner</h1>
+        <form id="eventForm">
+            <label for="eventType">Event Type:</label>
+            <select id="eventType" required>
+                <option value="">Select Event Type</option>
+                <option value="Wedding">💍 Wedding</option>
+                <option value="Birthday">🎂 Birthday</option>
+                <option value="Corporate">💼 Corporate</option>
+                <option value="Other">🌈 Other</option>
+            </select>
+
+            <label for="eventName">Event Name:</label>
+            <input type="text" id="eventName" required>
+
+            <label for="eventDate">Event Date:</label>
+            <input type="date" id="eventDate" required>
+
+            <label for="eventLocation">Event Location:</label>
+            <input type="text" id="eventLocation" required>
+
+            <label for="guestCount">Estimated Guests:</label>
+            <input type="number" id="guestCount" min="1" required>
+
+            <label for="additionalDetails">Additional Details:</label>
+            <textarea id="additionalDetails" rows="4"></textarea>
+
+            <button type="submit">Add Event</button>
+        </form>
+
+        <div id="eventList"></div>
+    </div>
+
+    <script>
+        class EventManager {
+            constructor() {
+                this.events = JSON.parse(localStorage.getItem('events')) || [];
+                this.renderEvents();
+            }
+
+            addEvent(event) {
+                this.events.push(event);
+                this.saveEvents();
+                this.renderEvents();
+            }
+
+            saveEvents() {
+                localStorage.setItem('events', JSON.stringify(this.events));
+            }
+
+            renderEvents() {
+                const eventList = document.getElementById('eventList');
+                eventList.innerHTML = '';
+
+                this.events.forEach((event, index) => {
+                    const eventCard = document.createElement('div');
+                    eventCard.classList.add('event-card');
+                    eventCard.innerHTML = `
+                        <button class="delete-btn" onclick="eventManager.deleteEvent(${index})">🗑️ Delete</button>
+                        <h3>${event.eventName} (${event.eventType})</h3>
+                        <p>📅 Date: ${event.eventDate}</p>
+                        <p>📍 Location: ${event.eventLocation}</p>
+                        <p>👥 Guests: ${event.guestCount}</p>
+                        <p>📝 Details: ${event.additionalDetails}</p>
+                    `;
+                    eventList.appendChild(eventCard);
+                });
+            }
+
+            deleteEvent(index) {
+                this.events.splice(index, 1);
+                this.saveEvents();
+                this.renderEvents();
+            }
+        }
+
+        const eventManager = new EventManager();
+
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newEvent = {
+                eventType: document.getElementById('eventType').value,
+                eventName: document.getElementById('eventName').value,
+                eventDate: document.getElementById('eventDate').value,
+                eventLocation: document.getElementById('eventLocation').value,
+                guestCount: document.getElementById('guestCount').value,
+                additionalDetails: document.getElementById('additionalDetails').value
+            };
+
+            eventManager.addEvent(newEvent);
+            this.reset();
+        });
+    </script>
+</body>
+</html>
